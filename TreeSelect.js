@@ -196,6 +196,7 @@
                 }
             }
             xtime = [];
+            var search=false;
             $treeinput.focus(focusevent).keyup(function (e) {
                 var text = $(this).val();
                 if (!defaultoption.remotesearch) {
@@ -209,7 +210,8 @@
                         $tree.treeview('clearSearch');
                     }
                 } else {
-                    if (text && text != '') {
+                    if (text && text != '' || search) {
+                        search = true;
                         searchtime = new Date().getTime();
                         setTimeout(function () {
 
@@ -219,6 +221,9 @@
                                 return;
                             }
                             sendRequest(defaultoption.url, getquery(text));
+                            if (!text) {
+                                search = false;
+                            }
                         }, 500);
                     } else {
                         focusevent();
