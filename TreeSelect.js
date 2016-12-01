@@ -38,6 +38,18 @@
             }
         }
     };
+
+    Array.prototype.resetItemMember = function (key,value) {
+        for (var i in this) {
+            this[i][key] = value === undefined ? {} : value;
+        }
+    };
+
+    //Array.prototype.find = function (key, value) {
+    //    for (var i in this) {
+    //        this[i][key] = value === undefined ? {} : value;
+    //    }
+    //};
     //停止事件冒泡
     var stopmp = function (e) {
         e = e || event;
@@ -67,10 +79,10 @@
         position: 'absolute' // Element positioning
     };
 
-    if(!jQuery.fn.valchange){
+    if (!jQuery.fn.valchange) {
         $.fn.extend({
-            "valchange":function(val){
-                var result =  this.val(val);
+            "valchange": function (val) {
+                var result = this.val(val);
                 if (val !== undefined) {
                     this.change();
                 }
@@ -132,7 +144,7 @@
                     data.changeItemMemberName(defaultoption.nodesfield, "nodes")
                 }
 
-                data.deleteItemMember("state");
+                data.resetItemMember("state");
 
                 if (data.length == 0) {
                     data.push({ text: "没有匹配到结果", state: { disabled: true } });
@@ -146,8 +158,10 @@
                     if (query === undefined) {
                         treedata = data;
                     }
+                    
+
                     $tree.show();
-                    $tree.treeview({
+                    var tree = $tree.treeview({
                         data: data,
                         levels: query == undefined ? 1 : 2,
                         selectedIcon: 'glyphicon glyphicon-ok',
@@ -174,7 +188,11 @@
                         onSearchCleared: function (event, results) {
                             //$(this).removeClass("searching");
                         }
-                    })
+                    });
+                    var value = $this.val();
+                    if (value) {
+                        $tree.treeview('selectNode', [value, { silent: true }]);
+                    }
                 }).always(function () {
                     spin.stop();
                 }).fail(function () {
@@ -184,7 +202,12 @@
 
             var focusevent = function () {
                 var value = $treeinput.val();
-                if (value) {
+                var inputid = $this.val();
+                var treeselected = $tree.treeview('getSelected')[0];
+                if (treeselected&&treeselected.id != inputid) {
+                    $tree.treeview('selectNode', [inputid, { silent: true }]);
+                }
+                if (value && treedata) {
                     return $tree.show();
                 }
                 var url = defaultoption.url;
@@ -196,7 +219,7 @@
                 }
             }
             xtime = [];
-            var search=false;
+            var search = false;
             $treeinput.focus(focusevent).keyup(function (e) {
                 var text = $(this).val();
                 if (!defaultoption.remotesearch) {

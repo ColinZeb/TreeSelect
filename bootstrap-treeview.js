@@ -1092,8 +1092,10 @@
 		Identifies a node from either a node id or object
 	*/
 	Tree.prototype.identifyNode = function (identifier) {
-		return ((typeof identifier) === 'number') ?
-						this.nodes[identifier] :
+	    return ($.isNumeric(identifier)) ?
+						this.nodes.find(function(item) {
+						    return item["id"] == identifier;
+						}) :
 						identifier;
 	};
 
