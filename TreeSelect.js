@@ -107,7 +107,8 @@
                 "valuefield": "id",
                 "nodesfield": "nodes",
                 "remotesearch": false,
-                "queryparameter": "query"
+                "queryparameter": "query",
+                "lazyload": true
             };
 
             if (urlordataoroption) {
@@ -151,19 +152,28 @@
                 }
             }
 
-            var sendRequest = function (url, query) {
+            var sendRequest = function (url, option) {
+                var opt = {
+                    show: true,
+                    callback: undefined
+                };
+
+                $.extend(opt, option);
                 spin.spin($treecontainer[0]);
-                $.getJSON(url, query).done(function (data) {
+                $.getJSON(url, opt.query).done(function (data) {
                     initData(data);
-                    if (query === undefined) {
+                    if (opt.query === undefined) {
                         treedata = data;
                     }
 
 
-                    $tree.show();
+                    if (opt.show) {
+                        $tree.show();
+                    }
+                    $this.data("source", data);
                     var tree = $tree.treeview({
                         data: data,
-                        levels: query == undefined ? 1 : 2,
+                        levels: opt.query == undefined ? 1 : 2,
                         selectedIcon: 'glyphicon glyphicon-ok',
                         onNodeSelected: function (event, data) {
 
@@ -193,6 +203,9 @@
                     if (value) {
                         $tree.treeview('selectNode', [value, { silent: true }]);
                     }
+                    if ($.isFunction(opt.callback)) {
+                        opt.callback();
+                    }
                 }).always(function () {
                     spin.stop();
                 }).fail(function () {
@@ -204,8 +217,11 @@
                 var value = $treeinput.val();
                 var inputid = $this.val();
                 if (inputid) {
-                    var treeselected = $tree.treeview('getSelected')[0];
+                    var getselected = $tree.treeview('getSelected');
+                    var treeselected = getselected[0];
                     if (treeselected && treeselected.id != inputid) {
+                        $tree.treeview('selectNode', [inputid, { silent: true }]);
+                    } else if (getselected instanceof Array && getselected.length == 0) {
                         $tree.treeview('selectNode', [inputid, { silent: true }]);
                     }
                 }
@@ -222,6 +238,22 @@
             }
             xtime = [];
             var search = false;
+            if (!defaultoption.lazyload) {
+                sendRequest(defaultoption.url, {
+                    show: false,
+                    callback: function () {
+                        var inputid = $this.val();
+                        if (inputid) {
+                            $tree.treeview('selectNode', [inputid, { silent: true }]);
+                            var getselected = $tree.treeview('getSelected');
+                            var treeselected = getselected[0];
+                            if (treeselected) {
+                                $treeinput.val(treeselected.text);
+                            }
+                        }
+                    }
+                });
+            }
             $treeinput.focus(focusevent).keyup(function (e) {
                 var text = $(this).val();
                 if (!defaultoption.remotesearch) {
@@ -245,7 +277,7 @@
                             if (x < 490) {
                                 return;
                             }
-                            sendRequest(defaultoption.url, getquery(text));
+                            sendRequest(defaultoption.url, { query: getquery(text) });
                             if (!text) {
                                 search = false;
                             }
@@ -274,13 +306,15 @@
             var nodesfield = $element.data("nodes-field");
             var remotesearch = $element.data("remotesearch");
             var queryparameter = $element.data("query");
+            var lazyload = $element.data("lazyload");
             var option = {
                 url: url,
                 displayfield: displayfield,
                 nodesfield: nodesfield,
                 valuefield: valuefield,
                 remotesearch: remotesearch,
-                queryparameter: queryparameter
+                queryparameter: queryparameter,
+                lazyload: lazyload
             };
 
             $element.treeselect(option);
