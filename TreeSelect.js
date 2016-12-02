@@ -39,7 +39,7 @@
         }
     };
 
-    Array.prototype.resetItemMember = function (key,value) {
+    Array.prototype.resetItemMember = function (key, value) {
         for (var i in this) {
             this[i][key] = value === undefined ? {} : value;
         }
@@ -158,7 +158,7 @@
                     if (query === undefined) {
                         treedata = data;
                     }
-                    
+
 
                     $tree.show();
                     var tree = $tree.treeview({
@@ -203,9 +203,11 @@
             var focusevent = function () {
                 var value = $treeinput.val();
                 var inputid = $this.val();
-                var treeselected = $tree.treeview('getSelected')[0];
-                if (treeselected&&treeselected.id != inputid) {
-                    $tree.treeview('selectNode', [inputid, { silent: true }]);
+                if (inputid) {
+                    var treeselected = $tree.treeview('getSelected')[0];
+                    if (treeselected && treeselected.id != inputid) {
+                        $tree.treeview('selectNode', [inputid, { silent: true }]);
+                    }
                 }
                 if (value && treedata) {
                     return $tree.show();
