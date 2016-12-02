@@ -171,7 +171,7 @@
                         $tree.show();
                     }
                     //$this.data("source", data);
-                    $this.trigger("getdata", data);
+                    $this.trigger("getdata", [data]);
                     var tree = $tree.treeview({
                         data: data,
                         levels: opt.query == undefined ? 1 : 2,
