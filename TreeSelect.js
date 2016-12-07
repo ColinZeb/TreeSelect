@@ -1,6 +1,8 @@
 ﻿
 +function () {
-
+    var isString = function (str) {
+        return typeof str === "string" || str instanceof String;
+    };
     //改变成员名称
     Array.prototype.changeItemMemberName = function (ok, nk) {
         if (isString(ok) && isString(nk) && ok !== nk) {
@@ -22,9 +24,7 @@
         }
     };
 
-    var isString = function (str) {
-        return typeof str === "string" || str instanceof String;
-    };
+
     ////判断是否制定类型
     //Object.prototype.is = function (type) {
     //    return this instanceof type;
@@ -100,6 +100,8 @@
             var $tree = $('<div class="tree" style="display:none;" data-tree />');
             var $treecontainer = $("<div class='treecontainer'/>");
             var $treeinput = $("<input class='form-control'/>");
+            var xtime = [];
+            var search = false;
 
             var defaultoption = {
                 "url": undefined,
@@ -132,9 +134,7 @@
             $treecontainer = $this.parent();
             $($treecontainer).on('click', stopmp);
             //$($treecontainer.find()).on('click', stopmp);
-            if (!spin) {
-                spin = new Spinner(opts);
-            }
+            spin = new Spinner(opts);
             var getquery = function (text) {
                 var p = {};
                 p[defaultoption.queryparameter] = text;
@@ -147,7 +147,7 @@
 
                 data.resetItemMember("state");
 
-                if (data.length == 0) {
+                if (data.length === 0) {
                     data.push({ text: "没有匹配到结果", state: { disabled: true } });
                 }
             }
@@ -184,13 +184,16 @@
                             $this.valchange(data[defaultoption.valuefield]);
                             $tree.hide(200);
                             if (!defaultoption.remotesearch) {
-                                $tree.treeview('clearSearch');
+                                $tree.treeview("clearSearch");
+                            }
+                            if (search) {
+                                treedata = null;
                             }
                         },
                         onNodeUnselected: function (event, data) {
                             //var $this = $(this);
-                            $treeinput.valchange('');
-                            $this.valchange('');
+                            $treeinput.valchange("");
+                            $this.valchange("");
                             $tree.hide(200);
                         },
                         onSearchComplete: function (event, results) {
@@ -210,35 +213,11 @@
                 }).always(function () {
                     spin.stop();
                 }).fail(function () {
-                    console.error("请求失败")
+                    console.error("请求失败");
                 });
             }
+           
 
-            var focusevent = function () {
-                var value = $treeinput.val();
-                var inputid = $this.val();
-                if (inputid) {
-                    var getselected = $tree.treeview('getSelected');
-                    var treeselected = getselected[0];
-                    if (treeselected && treeselected.id != inputid) {
-                        $tree.treeview('selectNode', [inputid, { silent: true }]);
-                    } else if (getselected instanceof Array && getselected.length == 0) {
-                        $tree.treeview('selectNode', [inputid, { silent: true }]);
-                    }
-                }
-                if (value && treedata) {
-                    return $tree.show();
-                }
-                var url = defaultoption.url;
-                if (!treedata) {
-
-                    sendRequest(url);
-                } else {
-                    $tree.show(200);
-                }
-            }
-            xtime = [];
-            var search = false;
             if (!defaultoption.lazyload) {
                 sendRequest(defaultoption.url, {
                     show: false,
@@ -255,20 +234,41 @@
                     }
                 });
             }
-            $treeinput.focus(focusevent).keyup(function (e) {
+            $treeinput.focus(function () {
+                var value = $treeinput.val();
+                var inputid = $this.val();
+                if (inputid) {
+                    var getselected = $tree.treeview('getSelected');
+                    var treeselected = getselected[0];
+                    if (treeselected && treeselected.id !== inputid) {
+                        $tree.treeview('selectNode', [inputid, { silent: true }]);
+                    } else if (getselected instanceof Array && getselected.length === 0) {
+                        $tree.treeview('selectNode', [inputid, { silent: true }]);
+                    }
+                }
+                if (value && treedata) {
+                    return $tree.show();
+                }
+                var url = defaultoption.url;
+                if (!treedata) {
+                    sendRequest(url);
+                } else {
+                    $tree.show(200);
+                }
+            }).keyup(function (e) {
                 var text = $(this).val();
                 if (!defaultoption.remotesearch) {
-                    if (text && text != '') {
+                    if (text) {
                         $tree.treeview('search', [text, {
                             ignoreCase: true,     // case insensitive
                             exactMatch: false,    // like or equals
-                            revealResults: true,  // reveal matching nodes
+                            revealResults: true  // reveal matching nodes
                         }]);
                     } else {
                         $tree.treeview('clearSearch');
                     }
                 } else {
-                    if (text && text != '' || search) {
+                    if (text || search) {
                         search = true;
                         searchtime = new Date().getTime();
                         setTimeout(function () {
@@ -284,7 +284,12 @@
                             }
                         }, 500);
                     } else {
-                        focusevent();
+                        var getselected = $tree.treeview('getSelected');
+                        var treeselected = getselected[0];
+                        if (treeselected) {
+                            $('#tree').treeview('unselectNode', [treeselected.id, { silent: false }]);
+                        }
+                        $treeinput.focus();
                     }
                 }
             });
