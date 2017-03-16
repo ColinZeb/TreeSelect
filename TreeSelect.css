@@ -3,16 +3,19 @@
 .treecontainer {
     position: relative;
     display: inline-block;
+    
 }
-
+.tree.treeview {
+    height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
     .treecontainer > .tree {
         position: absolute;
     }
 
 .treeview > ul {
-    max-height: 400px;
-    overflow-y: auto;
-    overflow-x: hidden;
+    
 }
 
 .treeview.searching > ul > li.search-result {
